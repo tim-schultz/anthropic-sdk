@@ -8,6 +8,36 @@ use std::collections::HashMap;
 
 use crate::types::AnthropicErrorMessage;
 
+#[derive(Debug, Deserialize)]
+pub struct AnthropicResponse {
+    pub id: String,
+    pub model: String,
+    pub stop_reason: String,
+    pub role: String,
+    pub content: Vec<ContentItem>,
+    pub usage: Usage,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Usage {
+    pub input_tokens: u32,
+    pub output_tokens: u32,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type")]
+pub enum ContentItem {
+    #[serde(rename = "text")]
+    Text { text: String },
+    #[serde(rename = "tool_use")]
+    ToolUse {
+        id: String,
+        name: String,
+        input: Value,
+    },
+}
+
+#[derive(Debug, Clone)]
 pub struct Client {
     client: ReqwestClient,
     secret_key: String,
@@ -142,7 +172,14 @@ impl Client {
         body_map.insert("messages", json!(self.messages));
         body_map.insert("stream", json!(self.stream));
         body_map.insert("temperature", json!(self.temperature));
-        body_map.insert("system", json!(self.system));
+        body_map.insert(
+            "system",
+            json!([{
+                "type": "text",
+                "text": self.system,
+                "cache_control": {"type": "ephemeral"}
+            }]),
+        );
 
         if self.tools != Value::Null {
             body_map.insert("tools", self.tools.clone());
@@ -304,7 +341,11 @@ impl Request {
                                                 &cleaned_string,
                                             ) {
                                                 Ok(error_message) => {
-                                                    return Err(anyhow!("{}: {}", error_message.error.error_type, error_message.error.message));
+                                                    return Err(anyhow!(
+                                                        "{}: {}",
+                                                        error_message.error.error_type,
+                                                        error_message.error.message
+                                                    ));
                                                 }
                                                 Err(_) => {
                                                     eprintln!(
@@ -350,9 +391,48 @@ impl Request {
                 response.text().await?
             )),
             StatusCode::UNAUTHORIZED => Err(anyhow!("Unauthorized. Check your authorization key.")),
+            StatusCode::TOO_MANY_REQUESTS => {
+                Err(anyhow!("Too many Requests. You have been rate limited."))
+            }
             _ => {
                 let error_message = format!("Unexpected status code: {:?}", response.text().await?);
                 Err(anyhow!(error_message))
+            }
+        }
+    }
+    pub async fn execute_and_return_json(self) -> Result<AnthropicResponse> {
+        let response = self
+            .request_builder
+            .send()
+            .await
+            .context("Failed to send request")?;
+
+        match response.status() {
+            StatusCode::OK => {
+                let json_text = response
+                    .text()
+                    .await
+                    .context("Failed to read response text")?;
+
+                let anthropic_response: AnthropicResponse = serde_json::from_str(&json_text)
+                    .context("Failed to parse response as AnthropicResponse")?;
+                Ok(anthropic_response)
+            }
+            StatusCode::BAD_REQUEST => {
+                let error_text = response.text().await?;
+                Err(anyhow!(
+                    "Bad request. Check your request parameters. {}",
+                    error_text
+                ))
+            }
+            StatusCode::UNAUTHORIZED => Err(anyhow!("Unauthorized. Check your authorization key.")),
+            StatusCode::TOO_MANY_REQUESTS => {
+                Err(anyhow!("Too many Requests. You have been rate limited."))
+            }
+            _ => {
+                let error_message = format!("Unexpected status code: {}", response.status());
+                let error_text = response.text().await?;
+                Err(anyhow!("{}: {}", error_message, error_text))
             }
         }
     }
