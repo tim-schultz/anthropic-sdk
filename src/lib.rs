@@ -55,6 +55,7 @@ pub struct Client {
     beta: Option<String>,
     top_k: Option<i32>,
     top_p: Option<f64>,
+    tool_choice: Option<Value>,
 }
 
 #[derive(Deserialize)]
@@ -88,6 +89,7 @@ impl Client {
             beta: None,
             top_k: None,
             top_p: None,
+            tool_choice: None,
         }
     }
 
@@ -165,6 +167,11 @@ impl Client {
         self
     }
 
+    pub fn tool_choice(mut self, tool_choice: Value) -> Self {
+        self.tool_choice = Some(tool_choice);
+        self
+    }
+
     pub fn build(self) -> Result<Request, ReqwestError> {
         let mut body_map: HashMap<&str, Value> = HashMap::new();
         body_map.insert("model", json!(self.model));
@@ -180,6 +187,10 @@ impl Client {
                 "cache_control": {"type": "ephemeral"}
             }]),
         );
+
+        if let Some(tool_choice) = self.tool_choice {
+            body_map.insert("tool_choice", tool_choice);
+        }
 
         if self.tools != Value::Null {
             body_map.insert("tools", self.tools.clone());
