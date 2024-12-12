@@ -8,6 +8,16 @@ use std::collections::HashMap;
 
 use crate::types::AnthropicErrorMessage;
 
+mod gemini_client;
+
+// Re-export Gemini types and client
+pub use crate::gemini_client::GeminiClient;
+pub use crate::types::{
+    GeminiCandidate, GeminiContent, GeminiError, GeminiErrorDetails, GeminiFunctionCall,
+    GeminiFunctionDeclaration, GeminiFunctionResponse, GeminiGenerationConfig, GeminiPart,
+    GeminiRequest, GeminiResponse, GeminiSafetySetting, GeminiTool, GeminiUsage,
+};
+
 #[derive(Debug, Deserialize)]
 pub struct AnthropicResponse {
     pub id: String,
