@@ -1,6 +1,6 @@
 // examples/tool_use_usage.rs
 
-use anthropic_sdk::Client;
+use anthropic_sdk::AnthropicClient as Client;
 use dotenv::dotenv;
 use serde_json::json;
 
