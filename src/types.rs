@@ -98,7 +98,7 @@ pub struct GeminiFunctionResponse {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GeminiRequest {
     pub contents: Vec<GeminiContent>,
-    pub tools: Option<Vec<GeminiTool>>,
+    pub tools: Vec<GeminiTool>,
     pub safety_settings: Option<Vec<GeminiSafetySetting>>,
     pub generation_config: Option<GeminiGenerationConfig>,
 }

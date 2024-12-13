@@ -1,6 +1,6 @@
 // examples/basic_usage.rs
 
-use anthropic_sdk::AnthropicClient;
+use anthropic_sdk::{AnthropicClient, ClientType, LLMClientType};
 use dotenv::dotenv;
 use serde_json::json;
 
@@ -9,12 +9,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     let secret_key = std::env::var("ANTHROPIC_API_KEY").unwrap_or_default();
 
-    let request = AnthropicClient::new()
-        .version("2023-06-01")
-        // Set verbose to true if you need return the response as it is from Anthropic
-        // .verbose(true)
-        .auth(secret_key.as_str())
-        .model("claude-3-opus-20240229")
+    let client = LLMClientType::new(ClientType::Anthropic, "claude-3-opus-20240229", false, None)?;
+
+    let request = client.send_message("Write me a poem about bravery").await?;
+
+    let request = client
         .messages(&json!([
             {"role": "user", "content": "Write me a poem about bravery"}
         ]))

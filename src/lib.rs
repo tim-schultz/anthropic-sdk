@@ -1,25 +1,41 @@
-use anyhow::{anyhow, Context, Result};
-use reqwest::{Error as ReqwestError, RequestBuilder, StatusCode};
-use serde::Deserialize;
-use serde_json::Value;
+use anyhow::Result;
 
 // Module declarations
 mod anthropic_client;
 mod gemini_client;
+mod llm_client;
+mod traits;
 mod types;
 
-// Re-export the Anthropic client types and functionality
-pub use anthropic_client::{
-    AnthropicResponse, Client as AnthropicClient, ContentItem, Request as AnthropicRequest, Usage,
-};
+// Re-export the Anthropic client
+pub use anthropic_client::{AnthropicClient, AnthropicResponse, ContentItem};
 
-// Re-export Gemini types and client (maintained from original)
+// Re-export Gemini client
 pub use crate::gemini_client::GeminiClient;
-pub use crate::types::{
-    GeminiCandidate, GeminiContent, GeminiError, GeminiErrorDetails, GeminiFunctionCall,
-    GeminiFunctionDeclaration, GeminiFunctionResponse, GeminiGenerationConfig, GeminiPart,
-    GeminiRequest, GeminiResponse, GeminiSafetySetting, GeminiTool, GeminiUsage,
-};
 
-// Re-export other types that might be needed by external crates
-pub use crate::types::{AnthropicChatCompletionChunk, AnthropicErrorMessage};
+// Re-export common trait
+pub use crate::traits::{LLMClient, LLMConfig};
+
+pub use crate::llm_client::{ClientType, LLMClientType};
+
+// Re-export types
+pub use crate::types::{
+    // Anthropic types
+    AnthropicChatCompletionChunk,
+    AnthropicErrorMessage,
+    // Gemini types
+    GeminiCandidate,
+    GeminiContent,
+    GeminiError,
+    GeminiErrorDetails,
+    GeminiFunctionCall,
+    GeminiFunctionDeclaration,
+    GeminiFunctionResponse,
+    GeminiGenerationConfig,
+    GeminiPart,
+    GeminiRequest,
+    GeminiResponse,
+    GeminiSafetySetting,
+    GeminiTool,
+    GeminiUsage,
+};

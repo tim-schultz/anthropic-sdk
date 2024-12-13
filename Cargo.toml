@@ -1,15 +1,7 @@
 [package]
 name = "anthropic-sdk"
-version = "0.2.0"
+version = "0.1.0"
 edition = "2021"
-authors = ["Kayode Ojo <hello@mixpeal.com>"]
-license = "MIT"
-homepage = "https://github.com/mixpeal/anthropic-sdk"
-repository = "https://github.com/mixpeal/anthropic-sdk"
-categories = ["api-bindings", "web-programming", "asynchronous"]
-keywords = ["llm", "anthropic", "ai", "gemini", "claude"]
-description = "Rust SDK for Anthropic and Google Gemini APIs."
-readme = "README.md"
 
 [dependencies]
 anyhow = "1.0"
